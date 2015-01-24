@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/indicator"
+        android:layout_width="@dimen/indicator_width"
+        android:layout_height="@dimen/indicator_width"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="@dimen/view_small_padding"
+        android:layout_marginRight="@dimen/view_small_padding"
+        android:adjustViewBounds="true"
+        android:background="@drawable/cycleviewpager_indicator_circle_gray"
+        android:contentDescription="@string/none" >
+    </TextView>
+
+</LinearLayout>
