@@ -17,6 +17,8 @@
 
 ###### 3. 在Activity(Fragment)中设置CycleViewPager的views以及滚动与轮播属性
 
+	CycleViewPager cycleViewPager = (CycleViewPager) getFragmentManager()
+				.findFragmentById(R.id.cycleViewPager);
 	// 设置循环，在调用setData方法前调用
 	cycleViewPager.setCycle(true);
 
@@ -28,23 +30,23 @@
 
 ####**例子**
 ######项目中给出了6个例子，可以直接运行项目或者下载项目中得apk进行查看效果
-##### 1. *NoCycleTextView *
+##### 1. NoCycleTextView
 ######没有滚动的CycleTextView,与ViewPager相同
-##### 2. *CycleTextView*
+##### 2. CycleTextView
 ######可以滚动的CycleTextView
-##### 3. *WheelCycleTextView *
+##### 3. WheelCycleTextView 
 ######可以滚动与自动切换的CycleTextView
-##### 4. *EventCycleTextView *
+##### 4. EventCycleTextView 
 ######监听CycleTextView滚动事件
-##### 5. *FixedCycleTextView *
+##### 5. FixedCycleTextView 
 ######固定高度的CycleTextView
-##### 6. *NestedCycleTextView*
+##### 6. NestedCycleTextView
 ######CycleTextView嵌套在ViewPager中,实现拨动CycleTextView时外层ViewPager不滚动
 
 ####**api文档**
  [javadoc](http://androiddevelop.cn/javadoc/CycleViewPager/)
 
 ####**注意事项**
-###### 1. *设置是否循环需要在设置数据之前，即在setData前调用setCycle，CycleViewPger默认不循环。*
-###### 2. *外层有viewPager时，需要继承cn.androiddevelop.cycleviewpager.lib.BaseViewPager。*
-###### 3. *设置自动播放时，CycleViewPager自动为可循环滚动.滚动是轮播的基础。*
+###### 1. 设置是否循环需要在设置数据之前，即在setData前调用setCycle，CycleViewPager默认不循环。
+###### 2. 外层有viewPager时，需要继承cn.androiddevelop.cycleviewpager.lib.BaseViewPager。
+###### 3. 设置自动播放时，CycleViewPager自动为可循环滚动.滚动是轮播的基础。
