@@ -44,7 +44,7 @@
 ######CycleTextView嵌套在ViewPager中,实现拨动CycleTextView时外层ViewPager不滚动
 
 ####**api文档**
- [javadoc](http://androiddevelop.cn/javadoc/CycleViewPager/)
+ [javadoc](http://doc.codeboy.me/CycleViewPager/)
 
 ####**注意事项**
 ###### 1. 设置是否循环需要在设置数据之前，即在setData前调用setCycle，CycleViewPager默认不循环。
