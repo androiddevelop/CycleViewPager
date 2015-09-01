@@ -285,6 +285,10 @@ public class CycleViewPager extends Fragment implements OnPageChangeListener, Vi
 		@Override
 		public View instantiateItem(ViewGroup container, final int position) {
 			View v = views.get(position);
+			//防止v被添加前存在与另一个父容器中
+			if(v.getParent() != null){
+				((ViewGroup)v.getParent()).removeView(v);
+			}
 			container.addView(v);
 			return v;
 		}
