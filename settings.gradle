@@ -1,2 +1,2 @@
 include ':cycle-view-pager-example'
-include ':cycle-view-pager-lib'
+include ':cycle-view-pager'

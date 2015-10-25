@@ -5,7 +5,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "cn.androiddevelop.lib.cycleviewpager.example"
+        applicationId "me.codeboy.android.cycleviewpager.example"
         minSdkVersion 14
         targetSdkVersion 22
         versionCode 1
@@ -22,5 +22,5 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:22.2.1'
-    compile project(':cycle-view-pager-lib')
+    compile project(':cycle-view-pager')
 }

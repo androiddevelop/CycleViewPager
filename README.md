@@ -8,13 +8,15 @@ CycleViewPager
   
 ### 快速使用
 
-##### 1. 导入CycleViewPager项目：该项目是一个库，在对应项目的java build path中添加该项目
+##### 1. 导入CycleViewPager项目
+
+	 compile 'me.codeboy.android:cycle-view-pager:1.0.0'
 
 ##### 2. 在layout中引入cn.androiddevelop.cycleviewpager.lib.CycleViewPager这个Fragment.
 
 	  <fragment
         android:id="@+id/cycleViewPager"
-        android:name="cn.androiddevelop.cycleviewpager.lib.CycleViewPager"
+        android:name="me.codeboy.android.cycleviewpager.CycleViewPager"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 

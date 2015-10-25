@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="cn.androiddevelop.cycleviewpager.example.NoCycleTextView" >
+    tools:context="me.codeboy.android.cycleviewpager.example.NoCycleTextView" >
 
     <TextView
         android:id="@+id/text"

@@ -3,11 +3,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="cn.androiddevelop.cycleviewpager.example.NoCycleTextView" >
+    tools:context="me.codeboy.android.cycleviewpager.example.NoCycleTextView" >
 
     <fragment
         android:id="@+id/cycleViewPager"
-        android:name="cn.androiddevelop.cycleviewpager.lib.CycleViewPager"
+        android:name="me.codeboy.android.cycleviewpager.CycleViewPager"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
