@@ -162,7 +162,7 @@ public class CycleViewPager extends Fragment implements OnPageChangeListener, Vi
     /**
      * 是否处于循环状态
      *
-     * @return
+     * @return 是否处于循环状态
      */
     public boolean isCycle() {
         return isCycle;
@@ -184,7 +184,7 @@ public class CycleViewPager extends Fragment implements OnPageChangeListener, Vi
     /**
      * 是否处于轮播状态
      *
-     * @return
+     * @return 是否轮播
      */
     public boolean isWheel() {
         return isWheel;
@@ -331,7 +331,7 @@ public class CycleViewPager extends Fragment implements OnPageChangeListener, Vi
     /**
      * 设置viewpager是否可以滚动
      *
-     * @param enable
+     * @param enable 是否启动滚动
      */
     public void setScrollable(boolean enable) {
         viewPager.setScrollable(enable);
@@ -340,7 +340,7 @@ public class CycleViewPager extends Fragment implements OnPageChangeListener, Vi
     /**
      * 返回当前位置,循环时需要注意返回的position包含之前在views最前方与最后方加入的视图，即当前页面试图在views集合的位置
      *
-     * @return
+     * @return 当前位置
      */
     public int getCurrentPostion() {
         return currentPosition;
