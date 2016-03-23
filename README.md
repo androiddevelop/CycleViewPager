@@ -12,7 +12,7 @@ CycleViewPager
 
 	 compile 'me.codeboy.android:cycle-view-pager:1.0.0'
 
-##### 2. 在layout中引入cn.androiddevelop.cycleviewpager.lib.CycleViewPager这个Fragment.
+##### 2. 在layout中引入me.codeboy.android.cycleviewpager.CycleViewPager这个Fragment.
 
 	  <fragment
         android:id="@+id/cycleViewPager"
