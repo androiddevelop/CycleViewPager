@@ -1,0 +1,24 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+    >
+
+    <me.codeboy.android.cycleviewpager.CycleViewPager
+        android:id="@+id/cycleViewPager"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:padding="@dimen/cycle_view_pager_view_padding"
+        android:text="@string/parent1"
+        android:textColor="@color/black"
+        android:textSize="@dimen/normal_font"/>
+
+</LinearLayout>

@@ -1,162 +1,265 @@
 package me.codeboy.android.cycleviewpager;
 
-import android.app.Fragment;
-import android.os.Bundle;
+import android.content.Context;
+import android.os.Handler;
 import android.os.Message;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.codeboy.android.cycleviewpager.base.CycleViewPageHandler;
-import me.codeboy.android.cycleviewpager.base.CycleViewPagerIdleListener;
+import me.codeboy.android.cycleviewpager.adapter.CycleViewPagerAdapter;
 
 /**
  * 实现可循环，可轮播的viewpager
  *
  * @author Yuedong Li
  */
-public class CycleViewPager extends Fragment implements OnPageChangeListener, View.OnTouchListener {
-    private List<View> views = new ArrayList<View>();
-    private TextView[] indicators;
-    private FrameLayout viewPagerFragmentLayout;
-    private LinearLayout indicatorLayout; // 指示器
-    private BaseViewPager viewPager;
-    private BaseViewPager parentViewPager;
-    private ViewPagerAdapter adapter;
-    private CycleViewPageHandler.UnleakHandler handler;
-    private int time = 5000; // 轮播时间
-    private int currentPosition = 0; // 轮播当前位置
-    private boolean isScrollingOrPressed = false; // 滚动框是否滚动着或者被按着
-    private LinearLayout viewPagerDefaultBg;
-    private boolean isCycle = false; // 是否循环
-    private boolean isWheel = false; // 是否轮播
-    private int WHEEL_SIGNAL = 100; // 转动信号
-    private CycleViewPagerIdleListener listener; // 回调接口
+public class CycleViewPager extends RelativeLayout implements OnPageChangeListener, View.OnTouchListener {
+    private final static String TAG = "CycleViewPager";
+    private final static int WHEEL_SIGNAL = 100; // 转动信号
+    private final static int CYCLE_SIZE_THRESHOLD = 3; // 滚动时，view数目需要超过此值
+    private List<View> mViewList = new ArrayList<View>();
+    private TextView[] mIndicators;
+    private LinearLayout mIndicatorContainer; // 指示器
+    private int mmIndicatorSpace = -1; //指示器间距
+    private RelativeLayout mCycleViewPagerContainer; //父容器
+    private ViewPager mViewPager;
+    private ParentViewPager mParentViewPager;
+    private boolean mParentViewScrollable = true; //父viewPager是否可滚动
+    private CycleViewPagerAdapter mAdapter;
+    private CycleViewPageHandler mHandler;
+    private int mWheelTime = 5000; // 轮播时间
+    private int mCurrentPosition = 0; // 轮播当前位置
+    private boolean mCycle = true; // 是否循环
+    private boolean mWheel = false; // 是否轮播
+    private boolean mNeedIndicator = false; //是否需要指示器,views数目大于1时才需要
+    private boolean mUseDefaultIndicator = true; //使用系统指示器
+    private boolean mPageReplaceByCode = false; //是否是程序切换了viewPager的页面
+    private OnPageListener mListener; // 回调接口
+    private boolean mFinished = false; //view是否已经从窗口卸载掉了
+    private int mIndicatorSelectedBackground = R.drawable.cycleviewpager_indicator_circle_black; //指示器选中的背景颜色
+    private int mIndicatorUnselectedBackground = R.drawable.cycleviewpager_indicator_circle_gray;//指示器未选中的背景颜色
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = LayoutInflater.from(getActivity()).inflate(R.layout
-				.cycleviewpager_viewpager_fragment, null);
+    public CycleViewPager(Context context) {
+        super(context);
+        init(context);
+    }
 
-        viewPager = (BaseViewPager) view.findViewById(R.id
-				.viewPager);
-        viewPager.setOnTouchListener(this);
-        indicatorLayout = (LinearLayout) view.findViewById(R.id.viewpagerIndicatorLayout);
+    public CycleViewPager(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init(context);
+    }
 
-        viewPagerFragmentLayout = (FrameLayout) view.findViewById(R.id.viewPagerFragmentLayout);
-        viewPagerDefaultBg = (LinearLayout) view.findViewById(R.id.viewPagerDefaultBg);
+    public CycleViewPager(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init(context);
+    }
 
-        handler = new CycleViewPageHandler.UnleakHandler(getActivity()) {
+    /**
+     * 初始化控件
+     *
+     * @param context 上下文
+     */
+    public void init(Context context) {
+        View view = LayoutInflater.from(context).inflate(R.layout
+                .cycleviewpager_content, this, true);
+        mCycleViewPagerContainer = (RelativeLayout) view.findViewById(R.id
+                .cycle_view_pager_container);
+
+        mViewPager = (ViewPager) view.findViewById(R.id
+                .cycle_view_pager);
+        mViewPager.setOnTouchListener(this);
+        mIndicatorContainer = (LinearLayout) view.findViewById(R.id.cycle_view_pager_indicator_container);
+
+        mHandler = new CycleViewPageHandler(this) {
 
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                if (msg.what == WHEEL_SIGNAL && views.size() != 0) {
-                    if (!isScrollingOrPressed) {
-                        int max = views.size() + 1;
-                        int position = (currentPosition + 1) % views.size();
-                        viewPager.setCurrentItem(position, true);
-                        if (position == max) { // 最后一页时回到第一页
-                            viewPager.setCurrentItem(1, false);
-                        }
+                if (mViewList.size() == 0 || mFinished) {
+                    return;
+                }
+
+                if (msg.what == WHEEL_SIGNAL) {
+                    int maxSize = mViewList.size();
+                    if (maxSize <= CYCLE_SIZE_THRESHOLD) {
+                        return;
                     }
-                    handler.removeCallbacks(runnable);
-                    handler.postDelayed(runnable, time);
+                    mCurrentPosition = (mCurrentPosition + 1) % maxSize;
+                    mViewPager.setCurrentItem(mCurrentPosition, true);
+                    mHandler.removeCallbacks(runnable);
+                    mHandler.postDelayed(runnable, mWheelTime);
                 }
             }
         };
-
-        return view;
     }
 
     /**
-     * 初始化viewpager
+     * 消息runnable
+     */
+    private final Runnable runnable = new Runnable() {
+
+        @Override
+        public void run() {
+            if (!mFinished && mWheel) {
+                mHandler.sendEmptyMessage(WHEEL_SIGNAL);
+            }
+        }
+    };
+
+    /**
+     * 初始化viewpager,设置数据,默认循环
      *
      * @param views 要显示的views
      */
     public void setData(List<View> views) {
-        setData(views, 0);
+        setData(views, mCycle);
     }
 
     /**
-     * 初始化viewpager
+     * 初始化viewpager,设置数据
      *
-     * @param views        要显示的views
-     * @param showPosition 默认显示位置
+     * @param views 要显示的views
+     * @param cycle 是否循环
      */
-    public void setData(List<View> views, int showPosition) {
-        this.views.clear();
+    public void setData(List<View> views, boolean cycle) {
+        setData(views, cycle, mWheel);
+    }
 
-        if (views.size() == 0) {
-            viewPagerFragmentLayout.setVisibility(View.GONE);
+    /**
+     * 初始化viewpager,设置数据,默认循环
+     *
+     * @param views 要显示的views
+     * @param cycle 是否循环
+     * @param wheel 是否轮播
+     */
+    public void setData(List<View> views, boolean cycle, boolean wheel) {
+        setData(views, cycle, wheel, mWheelTime);
+    }
+
+    /**
+     * 初始化viewpager,设置数据,默认循环
+     *
+     * @param views     要显示的views
+     * @param cycle     是否循环
+     * @param wheel     是否轮播
+     * @param wheelTime 轮播时间间隔
+     */
+    public void setData(List<View> views, boolean cycle, boolean wheel, int wheelTime) {
+        setData(views, cycle, wheel, wheelTime, 0);
+    }
+
+    /**
+     * 初始化viewpager,设置数据和是否滚动
+     *
+     * @param views           要显示的views
+     * @param cycle           是否循环
+     * @param wheel           是否轮播
+     * @param wheelTime       轮播时间间隔
+     * @param defaultPosition 默认选择展示位置
+     */
+    public void setData(List<View> views, boolean cycle, boolean wheel, int wheelTime, int defaultPosition) {
+        mViewList.clear();
+
+        if (views != null && views.size() > 0) {
+            mViewList.addAll(views);
+        }
+
+        int ivSize = mViewList.size();
+
+        //没有view直接隐藏
+        if (ivSize == 0) {
+            setVisibility(View.GONE);
             return;
         }
 
-        for (View item : views) {
-            this.views.add(item);
+        if (cycle && ivSize > CYCLE_SIZE_THRESHOLD) {
+            this.mCycle = true;
+        } else {
+            this.mCycle = false;
+            this.mWheel = false;
         }
 
-        int ivSize = views.size();
-
-        // 设置指示器
-        indicators = new TextView[ivSize];
-        if (isCycle) {
-            indicators = new TextView[ivSize - 2];
-        }
-        indicatorLayout.removeAllViews();
-        for (int i = 0; i < indicators.length; i++) {
-            View view = LayoutInflater.from(getActivity()).inflate(R.layout
-					.cycleviewpager_indicator, null);
-            indicators[i] = (TextView) view.findViewById(R.id.indicator);
-            indicatorLayout.addView(view);
+        if (!mCycle && ivSize > 1 || mCycle && ivSize > CYCLE_SIZE_THRESHOLD) {
+            mNeedIndicator = true;
         }
 
-        adapter = new ViewPagerAdapter();
+        if (mUseDefaultIndicator) {
+            // 设置指示器
+            mIndicators = new TextView[ivSize];
+            if (mNeedIndicator) {
+                if (mCycle) {
+                    mIndicators = new TextView[ivSize - 2];
+                }
+                mIndicatorContainer.removeAllViews();
+                LinearLayout.LayoutParams params;
+                for (int i = 0; i < mIndicators.length; i++) {
+                    View view = LayoutInflater.from(getContext()).inflate(R.layout
+                            .cycleviewpager_indicator, null);
+                    mIndicators[i] = (TextView) view.findViewById(R.id.cycle_view_pager_indicator);
+                    if (mmIndicatorSpace > 0) {
+                        params = (LinearLayout.LayoutParams) mIndicators[i].getLayoutParams();
+                        params.setMargins(mmIndicatorSpace, params.topMargin, mmIndicatorSpace, params.bottomMargin);
+                        mIndicators[i].setLayoutParams(params);
+                    }
+                    mIndicatorContainer.addView(view);
+                }
+            } else {
+                mIndicatorContainer.setVerticalGravity(View.GONE);
+            }
+        }
+
+        mAdapter = new CycleViewPagerAdapter();
+        mAdapter.setViewList(mViewList);
+
+        mViewPager.setOffscreenPageLimit(ivSize > 3 ? 3 : ivSize);
+        mViewPager.addOnPageChangeListener(this);
+        mViewPager.setAdapter(mAdapter);
+        if (defaultPosition < 0 || defaultPosition >= mViewList.size()) {
+            defaultPosition = 0;
+        }
 
         // 默认指向第一项，下方viewPager.setCurrentItem将触发重新计算指示器指向
-        setIndicator(0);
+        setIndicator(defaultPosition);
 
-        viewPager.setOffscreenPageLimit(3);
-        viewPager.setOnPageChangeListener(this);
-        viewPager.setAdapter(adapter);
-        if (showPosition < 0 || showPosition >= views.size()) showPosition = 0;
-        if (isCycle) {
-            showPosition = showPosition + 1;
+        mViewPager.setCurrentItem(mCycle ? defaultPosition + 1 : defaultPosition);
+
+        //轮播
+        if (mCycle && wheel) {
+            this.mWheel = true;
+            mWheelTime = wheelTime;
+            mHandler.postDelayed(runnable, wheelTime);
         }
-        viewPager.setCurrentItem(showPosition);
+    }
 
-        viewPagerDefaultBg.setVisibility(View.GONE);
+    /**
+     * 设置指示器左方，默认指示器在右方
+     */
+    public void setIndicatorLeft() {
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mIndicatorContainer.getLayoutParams();
+        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
+        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        mIndicatorContainer.setLayoutParams(params);
     }
 
     /**
      * 设置指示器居中，默认指示器在右方
      */
     public void setIndicatorCenter() {
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout
-				.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mIndicatorContainer.getLayoutParams();
+        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
         params.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        indicatorLayout.setLayoutParams(params);
-    }
-
-    /**
-     * 是否循环，默认不开启，开启前，请将views的最前面与最后面各加入一个视图，用于循环
-     *
-     * @param isCycle 是否循环
-     */
-    public void setCycle(boolean isCycle) {
-        this.isCycle = isCycle;
+        mIndicatorContainer.setLayoutParams(params);
     }
 
     /**
@@ -165,20 +268,7 @@ public class CycleViewPager extends Fragment implements OnPageChangeListener, Vi
      * @return 是否处于循环状态
      */
     public boolean isCycle() {
-        return isCycle;
-    }
-
-    /**
-     * 设置是否轮播，默认不轮播,轮播一定是循环的
-     *
-     * @param isWheel 是否滚动
-     */
-    public void setWheel(boolean isWheel) {
-        this.isWheel = isWheel;
-        if (isWheel) {
-            isCycle = true;
-            handler.postDelayed(runnable, time);
-        }
+        return mCycle;
     }
 
     /**
@@ -187,163 +277,142 @@ public class CycleViewPager extends Fragment implements OnPageChangeListener, Vi
      * @return 是否轮播
      */
     public boolean isWheel() {
-        return isWheel;
-    }
-
-    final Runnable runnable = new Runnable() {
-
-        @Override
-        public void run() {
-            if (getActivity() != null && !getActivity().isFinishing() && isWheel) {
-                // viewpager依旧静止的话开始滑动
-                if (!isScrollingOrPressed) {
-                    handler.sendEmptyMessage(WHEEL_SIGNAL);
-                } else {
-                    handler.removeCallbacks(runnable);
-                }
-            }
-        }
-    };
-
-    /**
-     * 释放指示器高度，可能由于之前指示器被限制了高度，此处释放
-     */
-    public void releaseHeight() {
-        getView().getLayoutParams().height = RelativeLayout.LayoutParams.MATCH_PARENT;
-        refreshData();
-    }
-
-    /**
-     * 设置轮播暂停时间，即每多少秒切换到下一张视图.默认5000ms
-     *
-     * @param time 毫秒为单位
-     */
-    public void setTime(int time) {
-        this.time = time;
-    }
-
-    /**
-     * 刷新数据，当外部视图更新后，通知刷新数据
-     */
-    public void refreshData() {
-        if (adapter != null) {
-            adapter.notifyDataSetChanged();
-        }
-    }
-
-    /**
-     * 隐藏CycleViewPager
-     */
-    public void hide() {
-        viewPagerFragmentLayout.setVisibility(View.GONE);
+        return mWheel;
     }
 
     /**
      * 返回内置的viewpager
      *
-     * @return viewPager
+     * @return mViewPager
      */
-    public BaseViewPager getViewPager() {
-        return viewPager;
+    public ViewPager getInnerViewPager() {
+        return mViewPager;
     }
 
     /**
-     * 页面适配器 返回对应的view
+     * 获取默认指示器，可以通过修改margin属性修改间距，指示器的父view为LinearLayout
      *
-     * @author Yuedong Li
+     * @return 指示器数组
      */
-    private class ViewPagerAdapter extends PagerAdapter {
+    public TextView[] getIndicators() {
+        return mIndicators;
+    }
 
-        @Override
-        public int getCount() {
-            return views.size();
-        }
-
-        @Override
-        public boolean isViewFromObject(View arg0, Object arg1) {
-            return arg0 == arg1;
-        }
-
-        @Override
-        public void destroyItem(ViewGroup container, int position, Object object) {
-            container.removeView((View) object);
-        }
-
-        @Override
-        public View instantiateItem(ViewGroup container, final int position) {
-            View v = views.get(position);
-            //防止v被添加前存在与另一个父容器中
-            if (v.getParent() != null) {
-                ((ViewGroup) v.getParent()).removeView(v);
-            }
-            container.addView(v);
-            return v;
-        }
-
-        @Override
-        public int getItemPosition(Object object) {
-            return POSITION_NONE;
-        }
+    /**
+     * 设置指示器间距
+     *
+     * @param dpValue dp的值
+     */
+    public void setIndicatorsSpace(int dpValue) {
+        mmIndicatorSpace = (int) (dpValue * getResources().getDisplayMetrics().density / 2 + 0.5);
     }
 
     @Override
     public void onPageScrollStateChanged(int arg0) {
-        if (arg0 == ViewPager.SCROLL_STATE_DRAGGING || arg0 == ViewPager.SCROLL_STATE_SETTLING) {
-         // viewPager在滚动
-            isScrollingOrPressed = true;
-            handler.removeCallbacks(runnable);
-            return;
-        } else if (arg0 == ViewPager.SCROLL_STATE_IDLE) { // viewPager滚动结束
-            if (parentViewPager != null) {
-                parentViewPager.setScrollable(true);
-            }
-
-            viewPager.setCurrentItem(currentPosition, false);
-            if (listener != null) {
-                listener.onPagerSelected(views.get(currentPosition), currentPosition);
-            }
-            isScrollingOrPressed = false;
-
-            handler.postDelayed(runnable, time);
-        }
     }
 
     @Override
     public void onPageScrolled(int arg0, float arg1, int arg2) {
+        if (mListener != null) {
+            mListener.onPageScrolled(arg0 - 1, arg1, arg2);
+        }
     }
 
     @Override
     public void onPageSelected(int arg0) {
-        int max = views.size() - 1;
+        mCurrentPosition = arg0;
         int position = arg0;
-        currentPosition = arg0;
-        if (isCycle) {
-            if (arg0 == 0) {
-                currentPosition = max - 1;
-            } else if (arg0 == max) {
-                currentPosition = 1;
+        if (mCycle) {
+            if (mCurrentPosition == mViewList.size() - 1) {
+                position = 1;
+            } else if (mCurrentPosition == 0) {
+                position = mViewList.size() - 2;
             }
-            position = currentPosition - 1;
+
+            setIndicator(position - 1);
+
+            if (mCurrentPosition == mViewList.size() - 1 || mCurrentPosition == 0) {
+                final int newReplacePosition = getRealPosition(mCurrentPosition);
+                //等待动画结束
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mCurrentPosition = newReplacePosition;
+                        mPageReplaceByCode = true;
+                        mViewPager.setCurrentItem(mCurrentPosition, false);
+                    }
+                }, 250);
+            }
+        } else {
+            setIndicator(position);
         }
-        setIndicator(position);
+
+        if (mListener != null) {
+            if (!mPageReplaceByCode) {
+                int realPosition = getRealPosition(mCurrentPosition);
+                mListener.onPageSelected(mViewList.get(realPosition), mCycle ? realPosition - 1 : realPosition);
+            } else {
+                mPageReplaceByCode = false;
+            }
+        }
     }
 
     /**
-     * 设置viewpager是否可以滚动
+     * 获取映射后的位置
      *
-     * @param enable 是否启动滚动
+     * @param position position
+     * @return 位置
      */
-    public void setScrollable(boolean enable) {
-        viewPager.setScrollable(enable);
+    private int getRealPosition(int position) {
+        if (!mCycle) {
+            return position;
+        }
+
+        if (position == 0) {
+            return mViewList.size() - 2;
+        }
+
+        if (position == mViewList.size() - 1) {
+            return 1;
+        }
+        return position;
     }
 
     /**
-     * 返回当前位置,循环时需要注意返回的position包含之前在views最前方与最后方加入的视图，即当前页面试图在views集合的位置
+     * 获取当前位置
      *
      * @return 当前位置
      */
     public int getCurrentPostion() {
-        return currentPosition;
+        return mCycle ? mCurrentPosition - 1 : mCurrentPosition;
+    }
+
+    /**
+     * 获取指示器容器,容器位与右下角，margin和padding都设置0，自行设置
+     *
+     * @param useDefaultIndicator 使用默认指示器
+     * @return container 已经清理所有子view
+     */
+    public LinearLayout getIndicatorContainer(boolean useDefaultIndicator) {
+        if (!useDefaultIndicator) {
+            mIndicatorContainer.removeAllViews();
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mIndicatorContainer.getLayoutParams();
+            params.setMargins(0, 0, 0, 0);
+            mIndicatorContainer.setLayoutParams(params);
+            mIndicatorContainer.setPadding(0, 0, 0, 0);
+            mIndicators = null;
+        }
+        this.mUseDefaultIndicator = useDefaultIndicator;
+        return mIndicatorContainer;
+    }
+
+    /**
+     * 获取容器，可以用来设置背景等
+     *
+     * @return 根容器
+     */
+    public RelativeLayout getCycleViewPagerContainer() {
+        return mCycleViewPagerContainer;
     }
 
     /**
@@ -352,21 +421,53 @@ public class CycleViewPager extends Fragment implements OnPageChangeListener, Vi
      * @param selectedPosition 默认指示器位置
      */
     private void setIndicator(int selectedPosition) {
-        for (int i = 0; i < indicators.length; i++) {
-            indicators[i].setBackgroundResource(R.drawable.cycleviewpager_indicator_circle_gray);
+        if (!mNeedIndicator || !mUseDefaultIndicator) {
+            return;
         }
-        if (indicators.length > selectedPosition) {
-            indicators[selectedPosition].setBackgroundResource(R.drawable.cycleviewpager_indicator_circle_black);
+        for (int i = 0; i < mIndicators.length; i++) {
+            mIndicators[i].setBackgroundResource(mIndicatorUnselectedBackground);
         }
+        if (mIndicators.length > selectedPosition) {
+            mIndicators[selectedPosition].setBackgroundResource(mIndicatorSelectedBackground);
+        }
+    }
+
+
+    /**
+     * 默认指示器背景，height = 5dp
+     *
+     * @param defaultBackgroundId  默认背景资源id
+     * @param selectedBackgroundId 选中背景资源id
+     */
+    public void setIndicatorBackground(int defaultBackgroundId, int selectedBackgroundId) {
+        this.mIndicatorUnselectedBackground = defaultBackgroundId;
+        this.mIndicatorSelectedBackground = selectedBackgroundId;
     }
 
     /**
      * 如果当前页面嵌套在另一个viewPager中，为了在进行滚动时阻断父ViewPager滚动，可以阻止父ViewPager滑动事件
      * 父ViewPager需要实现ParentViewPager中的setScrollable方法
+     *
+     * @param scrollable 是否可以滚动
      */
-    public void disableParentViewPagerTouchEvent(BaseViewPager parentViewPager) {
+//    private void setParentViewPagerScrollable(boolean scrollable) {
+//        if (mParentViewPager != null) {
+//            this.mParentViewScrollable = scrollable;
+//            mParentViewPager.setScrollable(this, scrollable);
+//        }
+//    }
+
+    /**
+     * 设置父viewpager,并同时设置是否滑动时间优先级
+     *
+     * @param parentViewPager parent viewPager
+     * @param scrollable      是否可以滚动
+     */
+    public void setParentViewPagerAndScrollable(ParentViewPager parentViewPager, boolean scrollable) {
         if (parentViewPager != null) {
-            parentViewPager.setScrollable(false);
+            mParentViewPager = parentViewPager;
+            this.mParentViewScrollable = scrollable;
+            mParentViewPager.setScrollable(this, scrollable);
         }
     }
 
@@ -375,20 +476,58 @@ public class CycleViewPager extends Fragment implements OnPageChangeListener, Vi
      *
      * @param listener 页面监听器
      */
-    public void setOnCycleViewPagerListener(CycleViewPagerIdleListener listener) {
-        this.listener = listener;
+    public void setOnPageListener(OnPageListener listener) {
+        this.mListener = listener;
     }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            isScrollingOrPressed = true;
-            handler.removeCallbacks(runnable);
+            if (mWheel) {
+                mHandler.removeCallbacks(runnable);
+            }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            isScrollingOrPressed = false;
-            handler.postDelayed(runnable, time);
+            if (mWheel) {
+                mHandler.postDelayed(runnable, mWheelTime);
+            }
         }
 
         return false;
     }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        mFinished = true;
+    }
+
+    /**
+     * inner handler
+     */
+    static class CycleViewPageHandler extends Handler {
+        private final WeakReference<CycleViewPager> mCycleViewPager;
+
+        public CycleViewPageHandler(CycleViewPager cycleViewPager) {
+            this.mCycleViewPager = new WeakReference<CycleViewPager>(cycleViewPager);
+        }
+
+        @Override
+        public void dispatchMessage(Message msg) {
+            CycleViewPager cycleViewPager = mCycleViewPager.get();
+            if (cycleViewPager == null) {
+                return;
+            }
+            super.dispatchMessage(msg);
+        }
+    }
+
+    /**
+     * 监听器
+     */
+    public interface OnPageListener {
+        void onPageSelected(View view, int position);
+
+        void onPageScrolled(int position, float offsetPercent, int offsetPixels);
+    }
+
 }

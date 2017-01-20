@@ -2,7 +2,7 @@
           package="me.codeboy.android.cycleviewpager">
 
     <application android:allowBackup="true"
-                 android:label="@string/app_name"
+                 android:label="@string/cycle_view_pager_app_name"
         >
 
     </application>

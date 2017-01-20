@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <dimen name="view_small_padding">1dp</dimen>
-    <dimen name="view_padding">6dp</dimen>
-    <dimen name="view_big_padding">20dp</dimen>
-    <dimen name="indicator_width">5dp</dimen>
-    <dimen name="indicator_width_half">2.5dp</dimen>
+    <dimen name="cycle_view_pager_view_smaller_padding">1dp</dimen>
+    <dimen name="cycle_view_pager_view_small_padding">2dp</dimen>
+    <dimen name="cycle_view_pager_view_padding">6dp</dimen>
+    <dimen name="cycle_view_pager_indicator_width">5dp</dimen>
+    <dimen name="cycle_view_pager_indicator_width_half">2.5dp</dimen>
 
 </resources>

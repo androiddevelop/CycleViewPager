@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <corners android:radius="@dimen/indicator_width_half" />
+    <corners android:radius="@dimen/cycle_view_pager_indicator_width_half" />
 
-    <solid android:color="@color/gray" />
-
-    <padding
-        android:bottom="@dimen/view_small_padding"
-        android:top="@dimen/view_small_padding" />
+    <solid android:color="@color/cycle_view_pager_gray" />
 
 </shape>

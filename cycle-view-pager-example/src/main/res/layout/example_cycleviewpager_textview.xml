@@ -1,16 +1,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="me.codeboy.android.cycleviewpager.example.NoCycleTextView" >
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
     <TextView
         android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="@string/app_name"
-        android:textSize="@dimen/normal_font" />
+        android:text="@string/cycle_view_pager_app_name"
+        android:textSize="@dimen/normal_font"/>
 
     <TextView
         android:id="@+id/title"
@@ -19,8 +17,9 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_centerInParent="true"
-        android:padding="@dimen/view_small_padding"
-        android:text="@string/app_name"
-        android:textSize="@dimen/small_font" />
+        android:padding="@dimen/cycle_view_pager_view_small_padding"
+        android:text="@string/cycle_view_pager_app_name"
+        android:textColor="@color/cycle_view_pager_gray"
+        android:textSize="@dimen/small_font"/>
 
 </RelativeLayout>

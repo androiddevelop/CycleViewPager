@@ -1,65 +1,54 @@
 package me.codeboy.android.cycleviewpager.example;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.view.View.OnClickListener;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
+
+import me.codeboy.android.cycleviewpager.example.adapter.MenuListAdapter;
+import me.codeboy.android.cycleviewpager.example.example.IndicatorCustom2CycleTextView;
+import me.codeboy.android.cycleviewpager.example.example.CycleTextView;
+import me.codeboy.android.cycleviewpager.example.example.NoCycleTextView;
+import me.codeboy.android.cycleviewpager.example.example.EventCycleTextView;
+import me.codeboy.android.cycleviewpager.example.example.IndicatorCustom1CycleTextView;
+import me.codeboy.android.cycleviewpager.example.example.NestCycleTextView;
+import me.codeboy.android.cycleviewpager.example.example.WheelCycleTextView;
 
 /**
  * 主页面
  *
  * @author YD
  */
-public class MainUI extends Activity implements OnClickListener {
+public class MainUI extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.cycleviewpager_main);
-        findViewById(R.id.noCycleBtn).setOnClickListener(this);
-        findViewById(R.id.cycleBtn).setOnClickListener(this);
-        findViewById(R.id.wheelCycleBtn).setOnClickListener(this);
-        findViewById(R.id.eventCycleBtn).setOnClickListener(this);
-        findViewById(R.id.fixedCycleBtn).setOnClickListener(this);
-        findViewById(R.id.nestedCycleBtn).setOnClickListener(this);
-    }
+        setContentView(R.layout.example_cycleviewpager_main);
 
-    @Override
-    public void onClick(View v) {
-        Intent intent = null;
-        int id = v.getId();
-        if (id == R.id.noCycleBtn) {
-            intent = new Intent(this, NoCycleTextView.class);
-            startActivity(intent);
-            return;
-        }
-        if (id == R.id.cycleBtn) {
-            intent = new Intent(this, CycleTextView.class);
-            startActivity(intent);
-            return;
-        }
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.menu_container);
+        String[] menus = new String[]{
+                getString(R.string.no_cycle_style),
+                getString(R.string.cycle_style),
+                getString(R.string.wheel_cycle_style),
+                getString(R.string.event_cycle_style),
+                getString(R.string.indicator_custom__cycle_style_1),
+                getString(R.string.indicator_custom__cycle_style_2),
+                getString(R.string.nest_cycle_style)
+        };
 
-        if (id == R.id.wheelCycleBtn) {
-            intent = new Intent(this, WheelCycleTextView.class);
-            startActivity(intent);
-            return;
-        }
+        Class[] actions = new Class[]{
+                NoCycleTextView.class,
+                CycleTextView.class,
+                WheelCycleTextView.class,
+                EventCycleTextView.class,
+                IndicatorCustom1CycleTextView.class,
+                IndicatorCustom2CycleTextView.class,
+                NestCycleTextView.class
+        };
 
-        if (id == R.id.eventCycleBtn) {
-            intent = new Intent(this, EventCycleTextView.class);
-            startActivity(intent);
-            return;
-        }
-        if (id == R.id.fixedCycleBtn) {
-            intent = new Intent(this, FixedCycleTextView.class);
-            startActivity(intent);
-            return;
-        }
-        if (id == R.id.nestedCycleBtn) {
-            intent = new Intent(this, NestedCycleTextView.class);
-            startActivity(intent);
-            return;
-        }
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 2);
+        recyclerView.setLayoutManager(gridLayoutManager);
+        recyclerView.setAdapter(new MenuListAdapter(this, menus, actions));
     }
 }

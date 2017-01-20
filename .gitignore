@@ -27,3 +27,5 @@ proguard/
 /target/
 
 .idea/
+
+gradle/
