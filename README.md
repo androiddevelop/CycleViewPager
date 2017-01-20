@@ -3,7 +3,9 @@ CycleViewPager
 
 ### 系统要求
 
- android 4.0(含)以上，[Demo下载](./cycle-view-pager-example-debug.apk)
+ android 4.0(含)以上，Demo地址:[https://github.com/androiddevelop/CycleViewPager/raw/master/cycle-view-pager-example-debug.apk](https://github.com/androiddevelop/CycleViewPager/raw/master/cycle-view-pager-example-debug.apk)
+
+ ![](./demo_download_url.png)
 
 ### 快速使用
 
@@ -55,7 +57,7 @@ CycleViewPager
     //与viewPager相同
 	cycleViewPager.setData(views, false);
 
->> setData请放在最后一步设置。
+> setData请放在最后一步设置。
 
 ### 例子
 
