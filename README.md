@@ -89,4 +89,23 @@ CycleViewPager
 - 控件的点击事件请自行设置，多增加的第一个和最后一个控件由于动画时间也请设置事件。CycleViewPager仅提供循环和轮播的机制。
 - 使用中可以忽略添加的两个控件，listener中返回的position为处理后的位置。如果有4个view，名字为view0、view1、view2、view3,设置循环时，传入的views为view3'、view0、view1、view2、view3、view1'，返回的position将介于[0,3]之间。
 
+
+## License
+
+```
+Copyright 2016 Yuedong.li
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+
 > 有任何问题,欢迎发送邮件到app@codeboy.me交流.
