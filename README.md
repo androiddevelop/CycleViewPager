@@ -16,7 +16,7 @@ CycleViewPager
 
 	 compile 'me.codeboy.android:cycle-view-pager:2.0.0'
 
-### 2. 在layout中引入me.codeboy.android.cycleviewpager.CycleViewPager这个View.
+### 2. 在layout中引入me.codeboy.android.cycleviewpager.CycleViewPager这个View
 
 	  <me.codeboy.android.cycleviewpager.CycleViewPager
           android:id="@+id/cycleViewPager"
