@@ -1,16 +1,16 @@
 CycleViewPager
 ---
-**支持自动轮播和循环滚动的ViewPager**
+#### **支持自动轮播和循环滚动的ViewPager**
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/me.codeboy.android/cycle-view-pager/badge.svg)](https://maven-badges.herokuapp.com/maven-central/me.codeboy.android/cycle-view-pager)
 
-### 系统要求
+## 系统要求
 
  android 4.0(含)以上，Demo地址:[https://github.com/androiddevelop/CycleViewPager/raw/master/cycle-view-pager-example-debug.apk](https://github.com/androiddevelop/CycleViewPager/raw/master/cycle-view-pager-example-debug.apk)
 
  ![](./demo_download_url.png)
 
-### 快速使用
+## 快速使用
 
 #### 1. 导入CycleViewPager项目
 
@@ -23,7 +23,7 @@ CycleViewPager
           android:layout_width="match_parent"
           android:layout_height="match_parent"/>
 
-#### 3. views创建
+### 3. views创建
 
     // 需要循环的创建方式
      List<View> views = new ArrayList<View>();
@@ -41,7 +41,7 @@ CycleViewPager
          views.add(ViewFactory.create("第i个view");
      }
 
-#### 4. 设置CycleViewPager的views以及滚动与轮播属性
+### 4. 设置CycleViewPager的views以及滚动与轮播属性
 
 	CycleViewPager cycleViewPager = (CycleViewPager)mContext.findFragmentById(R.id.cycleViewPager);
 
@@ -80,11 +80,11 @@ CycleViewPager
 #### 7. NestedCycleTextView
 ######	*CycleTextView嵌套在ViewPager中,实现滚动CycleTextView时外层ViewPager不滚动*
 
-### javadoc文档
+## javadoc文档
 
  [在线api文档](http://doc.codeboy.me/CycleViewPager/)
 
-### 注意事项
+## 注意事项
 
 - 外层有viewPager时，需要继承me.codeboy.android.cycleviewpager.BaseViewPager。
 - 设置自动播放时，CycleViewPager自动为可循环滚动.滚动是轮播的基础。
