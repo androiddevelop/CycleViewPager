@@ -1,5 +1,7 @@
 CycleViewPager
 ---
+**支持自动轮播和循环滚动的ViewPager**
+
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/me.codeboy.android/cycle-view-pager/badge.svg)](https://maven-badges.herokuapp.com/maven-central/me.codeboy.android/cycle-view-pager)
 
 ### 系统要求
